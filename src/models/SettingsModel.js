@@ -7,11 +7,13 @@ const SETTINGS_STORAGE_KEY = 'coverai_settings';
 const DEFAULT_SETTINGS = {
     apiKey: '',
     geminiModel: 'gemini-1.5-flash',
+    fullName: '', // Main override for name
     coverLetterTone: 'professional', // professional, friendly, formal
     includeDate: true,
     defaultSignature: '',
     autoDetectJobs: true,
-    showNotifications: true
+    showNotifications: true,
+    developerMode: false
 };
 
 export const SettingsModel = {

@@ -47,6 +47,7 @@ const elements = {
     // Preview
     previewSection: document.getElementById('previewSection'),
     previewContent: document.getElementById('previewContent'),
+    regenerateBtn: document.getElementById('regenerateBtn'),
     copyBtn: document.getElementById('copyBtn'),
     downloadBtn: document.getElementById('downloadBtn'),
 
@@ -56,10 +57,16 @@ const elements = {
     closeSettingsBtn: document.getElementById('closeSettingsBtn'),
     apiKeyInput: document.getElementById('apiKeyInput'),
     toggleApiKey: document.getElementById('toggleApiKey'),
+    fullNameInput: document.getElementById('fullNameInput'),
     modelSelect: document.getElementById('modelSelect'),
     toneSelect: document.getElementById('toneSelect'),
     includeDateCheck: document.getElementById('includeDateCheck'),
-    saveSettingsBtn: document.getElementById('saveSettingsBtn')
+    includeDateCheck: document.getElementById('includeDateCheck'),
+    saveSettingsBtn: document.getElementById('saveSettingsBtn'),
+    devModeCheck: document.getElementById('devModeCheck'),
+    debugSection: document.getElementById('debugSection'),
+    debugContent: document.getElementById('debugContent'),
+    refreshDebugBtn: document.getElementById('refreshDebugBtn')
 };
 
 // State
@@ -126,9 +133,19 @@ async function loadSettings() {
     const settings = await SettingsModel.get();
 
     elements.apiKeyInput.value = settings.apiKey || '';
+    elements.fullNameInput.value = settings.fullName || '';
     elements.modelSelect.value = settings.geminiModel || 'gemini-1.5-flash';
     elements.toneSelect.value = settings.coverLetterTone || 'professional';
     elements.includeDateCheck.checked = settings.includeDate !== false;
+    elements.devModeCheck.checked = settings.developerMode || false;
+
+    // Show/hide debug section
+    if (settings.developerMode) {
+        elements.debugSection.classList.remove('hidden');
+        updateDebugView();
+    } else {
+        elements.debugSection.classList.add('hidden');
+    }
 }
 
 /**
@@ -169,12 +186,7 @@ async function handleResumeUpload(event) {
         const resumeData = await ResumeController.uploadResume(file);
 
         const parseTime = Date.now() - startTime;
-        console.log(`[CoverAI] Resume parsed in ${parseTime}ms:`, {
-            name: resumeData.name,
-            email: resumeData.email,
-            skillsCount: resumeData.skills?.length || 0,
-            textLength: resumeData.rawText?.length || 0
-        });
+        console.log(`[CoverAI] Resume parsed in ${parseTime}ms`);
 
         // Update UI with parsed data
         elements.resumeName.textContent = resumeData.name || file.name;
@@ -275,6 +287,7 @@ async function clearJob() {
 async function generateCoverLetter() {
     try {
         elements.generateBtn.disabled = true;
+        elements.regenerateBtn.disabled = true;
         elements.progressSection.classList.remove('hidden');
         elements.previewSection.classList.add('hidden');
         elements.progressText.textContent = 'Generating your cover letter...';
@@ -282,9 +295,15 @@ async function generateCoverLetter() {
         const result = await CoverLetterController.preview();
 
         currentCoverLetter = result;
-        elements.previewContent.textContent = result.text;
+        // Set textarea value (editable)
+        elements.previewContent.value = result.text;
         elements.progressSection.classList.add('hidden');
         elements.previewSection.classList.remove('hidden');
+
+        // Scroll preview into view
+        setTimeout(() => {
+            elements.previewSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 100);
 
     } catch (error) {
         console.error('Generation error:', error);
@@ -294,15 +313,17 @@ async function generateCoverLetter() {
         }, 3000);
     } finally {
         elements.generateBtn.disabled = false;
+        elements.regenerateBtn.disabled = false;
     }
 }
 
 /**
- * Copy cover letter to clipboard
+ * Copy cover letter to clipboard (uses edited content)
  */
 async function copyCoverLetter() {
-    if (currentCoverLetter?.text) {
-        await navigator.clipboard.writeText(currentCoverLetter.text);
+    const text = elements.previewContent.value;
+    if (text) {
+        await navigator.clipboard.writeText(text);
         elements.copyBtn.querySelector('svg').style.color = 'var(--success)';
         setTimeout(() => {
             elements.copyBtn.querySelector('svg').style.color = '';
@@ -311,12 +332,21 @@ async function copyCoverLetter() {
 }
 
 /**
- * Download cover letter as DOCX
+ * Download cover letter as DOCX (uses edited content)
  */
 async function downloadCoverLetter() {
     try {
         elements.downloadBtn.disabled = true;
-        await CoverLetterController.generateAndDownload();
+
+        // Use the edited text from textarea
+        const editedText = elements.previewContent.value;
+        if (!editedText) {
+            alert('No cover letter to download');
+            return;
+        }
+
+        // Update the controller with edited text and download
+        await CoverLetterController.generateAndDownloadWithText(editedText);
     } catch (error) {
         console.error('Download error:', error);
         alert('Failed to download: ' + error.message);
@@ -353,13 +383,32 @@ function toggleApiKeyVisibility() {
 async function saveSettings() {
     await SettingsModel.save({
         apiKey: elements.apiKeyInput.value.trim(),
+        fullName: elements.fullNameInput.value.trim(),
         geminiModel: elements.modelSelect.value,
         coverLetterTone: elements.toneSelect.value,
-        includeDate: elements.includeDateCheck.checked
+        includeDate: elements.includeDateCheck.checked,
+        developerMode: elements.devModeCheck.checked
     });
 
+    await loadSettings(); // Apply changes immediately (e.g. show/hide debug section)
     hideSettings();
     await checkReadiness();
+}
+
+/**
+ * Update debug view with current resume data
+ */
+async function updateDebugView() {
+    try {
+        const resume = await ResumeController.getResume();
+        if (resume) {
+            elements.debugContent.textContent = JSON.stringify(resume, null, 2);
+        } else {
+            elements.debugContent.textContent = 'No resume data found';
+        }
+    } catch (error) {
+        elements.debugContent.textContent = 'Error loading debug data: ' + error.message;
+    }
 }
 
 /**
@@ -380,8 +429,10 @@ function setupEventListeners() {
 
     // Generate
     elements.generateBtn.addEventListener('click', generateCoverLetter);
+    elements.regenerateBtn.addEventListener('click', generateCoverLetter);
     elements.copyBtn.addEventListener('click', copyCoverLetter);
     elements.downloadBtn.addEventListener('click', downloadCoverLetter);
+    elements.refreshDebugBtn.addEventListener('click', updateDebugView);
 
     // Settings
     elements.settingsBtn.addEventListener('click', showSettings);

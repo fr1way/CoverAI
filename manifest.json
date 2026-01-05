@@ -16,7 +16,9 @@
     "https://boards.greenhouse.io/*",
     "https://jobs.lever.co/*",
     "https://*.myworkdayjobs.com/*",
-    "https://www.glassdoor.com/*"
+    "https://www.glassdoor.com/*",
+    "https://jobright.ai/*",
+    "https://www.jobright.ai/*"
   ],
   "action": {
     "default_popup": "src/views/popup.html",
@@ -40,9 +42,13 @@
         "https://boards.greenhouse.io/*",
         "https://jobs.lever.co/*",
         "https://*.myworkdayjobs.com/*",
-        "https://www.glassdoor.com/job-listing/*"
+        "https://www.glassdoor.com/job-listing/*",
+        "https://jobright.ai/*",
+        "https://www.jobright.ai/*"
       ],
-      "js": ["src/content/contentScript.js"],
+      "js": [
+        "src/content/contentScript.js"
+      ],
       "run_at": "document_idle"
     }
   ],
@@ -54,10 +60,30 @@
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; worker-src 'self'"
+  },
   "web_accessible_resources": [
     {
-      "resources": ["lib/*"],
-      "matches": ["<all_urls>"]
+      "resources": [
+        "lib/pdf.min.js",
+        "lib/pdf.worker.min.js",
+        "lib/mammoth.browser.min.js",
+        "lib/docx.min.js"
+      ],
+      "matches": [
+        "https://www.linkedin.com/*",
+        "https://linkedin.com/*",
+        "https://www.indeed.com/*",
+        "https://indeed.com/*",
+        "https://boards.greenhouse.io/*",
+        "https://jobs.lever.co/*",
+        "https://*.myworkdayjobs.com/*",
+        "https://www.glassdoor.com/*",
+        "https://jobright.ai/*",
+        "https://www.jobright.ai/*"
+      ],
+      "use_dynamic_url": true
     }
   ]
 }

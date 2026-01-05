@@ -1,28 +1,10 @@
 /**
  * DOCX Generator Service
  * Uses docx.js to create formatted cover letter documents
+ * 
+ * NOTE: The docx library must be loaded via script tag in popup.html
+ * before this service is used. It exposes the global 'docx' object.
  */
-
-// docx library is loaded as UMD and exposes 'docx' global
-// For Chrome extension, we'll use dynamic import or script loading
-
-/**
- * Load docx library
- */
-async function loadDocx() {
-    if (typeof docx !== 'undefined') {
-        return docx;
-    }
-
-    // For ES modules context, try dynamic import
-    try {
-        const module = await import(chrome.runtime.getURL('lib/docx.min.js'));
-        return module;
-    } catch (e) {
-        console.error('Failed to load docx library:', e);
-        throw new Error('DOCX library not available');
-    }
-}
 
 /**
  * Generate a formatted cover letter DOCX
@@ -30,6 +12,11 @@ async function loadDocx() {
  * @returns {Promise<Blob>} DOCX file as Blob
  */
 export async function generateCoverLetterDOCX(options) {
+    // Check if docx library is available (loaded via script tag)
+    if (typeof window.docx === 'undefined') {
+        throw new Error('DOCX library not loaded. Please reload the extension.');
+    }
+
     const {
         applicantName = '',
         applicantEmail = '',
@@ -42,8 +29,8 @@ export async function generateCoverLetterDOCX(options) {
         includeDate = true
     } = options;
 
-    const docxLib = await loadDocx();
-    const { Document, Paragraph, TextRun, AlignmentType, Packer } = docxLib;
+    // Get constructors from global docx object
+    const { Document, Paragraph, TextRun, AlignmentType, Packer } = window.docx;
 
     const today = new Date().toLocaleDateString('en-US', {
         year: 'numeric',

@@ -71,7 +71,7 @@ export async function generateAndDownload(options = {}) {
 
     // Generate DOCX
     const blob = await generateCoverLetterDOCX({
-        applicantName: result.resume.name,
+        applicantName: settings.fullName || result.resume.name,
         applicantEmail: result.resume.email,
         applicantPhone: result.resume.phone,
         companyName: result.job.company,
@@ -121,9 +121,44 @@ export async function checkReadiness() {
     };
 }
 
+/**
+ * Generate and download with custom/edited text
+ * @param {string} editedText - The edited cover letter text to download
+ * @returns {Promise<Object>}
+ */
+export async function generateAndDownloadWithText(editedText) {
+    // Get resume and job for metadata
+    const resume = await ResumeModel.get();
+    const job = await JobModel.getCurrent();
+    const settings = await SettingsModel.get();
+
+    // Create filename
+    const sanitizedCompany = (job?.company || 'Company')
+        .replace(/[^a-zA-Z0-9]/g, '_')
+        .slice(0, 30);
+    const filename = `Cover_Letter_${sanitizedCompany}.docx`;
+
+    // Generate DOCX with edited text
+    const blob = await generateCoverLetterDOCX({
+        applicantName: settings.fullName || resume?.name || '',
+        applicantEmail: resume?.email || '',
+        applicantPhone: resume?.phone || '',
+        companyName: job?.company || '',
+        jobTitle: job?.title || '',
+        coverLetterBody: editedText,
+        includeDate: settings.includeDate
+    });
+
+    // Download
+    downloadDOCX(blob, filename);
+
+    return { filename, blob };
+}
+
 export default {
     generate,
     generateAndDownload,
+    generateAndDownloadWithText,
     preview,
     checkReadiness
 };

@@ -96,6 +96,25 @@ function buildPrompt(resume, job, tone) {
 
     const toneDesc = toneDescriptions[tone] || toneDescriptions.professional;
 
+    // Security: Sanitize inputs to prevent prompt injection
+    const sanitizeText = (text) => {
+        if (typeof text !== 'string') return '';
+        // Remove control characters and normalize whitespace
+        return text.replace(/[\x00-\x1F\x7F]/g, '').replace(/\s+/g, ' ').trim();
+    };
+
+    const resumeName = sanitizeText(resume.name || 'Not provided');
+    const resumeEmail = sanitizeText(resume.email || 'Not provided');
+    const resumeSummary = sanitizeText(resume.summary || '');
+    const jobTitle = sanitizeText(job.title || 'Not specified');
+    const jobCompany = sanitizeText(job.company || 'Not specified');
+    const jobLocation = sanitizeText(job.location || '');
+    const jobDescription = sanitizeText(job.description || 'No description provided');
+    const jobRequirements = sanitizeText(job.requirements || '');
+
+    // Truncate very long fields
+    const truncate = (str, max) => str.length > max ? str.substring(0, max) + '...' : str;
+
     return `You are an expert cover letter writer with years of experience in career coaching and recruitment.
 
 Your task is to write a compelling cover letter that:
@@ -112,22 +131,22 @@ Format the cover letter as plain text with paragraph breaks. Do not include date
 IMPORTANT: Only reference experiences, skills, and qualifications that are explicitly mentioned in the provided resume. Never fabricate or embellish.
 
 === CANDIDATE RESUME ===
-Name: ${resume.name || 'Not provided'}
-Email: ${resume.email || 'Not provided'}
+Name: ${resumeName}
+Email: ${resumeEmail}
 
-${resume.summary ? `Summary/Objective:\n${resume.summary}\n` : ''}
-${resume.skills?.length > 0 ? `Skills:\n${resume.skills.join(', ')}\n` : ''}
-${resume.rawText ? `Full Resume Content:\n${resume.rawText}\n` : ''}
+${resumeSummary ? `Summary/Objective:\n${truncate(resumeSummary, 500)}\n` : ''}
+${resume.skills?.length > 0 ? `Skills:\n${resume.skills.slice(0, 50).map(s => sanitizeText(s)).join(', ')}\n` : ''}
+${resume.rawText ? `Full Resume Content:\n${truncate(sanitizeText(resume.rawText), 10000)}\n` : ''}
 
 === JOB DETAILS ===
-Job Title: ${job.title || 'Not specified'}
-Company: ${job.company || 'Not specified'}
-${job.location ? `Location: ${job.location}` : ''}
+Job Title: ${jobTitle}
+Company: ${jobCompany}
+${jobLocation ? `Location: ${jobLocation}` : ''}
 
 Job Description:
-${job.description || 'No description provided'}
+${truncate(jobDescription, 5000)}
 
-${job.requirements ? `Requirements:\n${job.requirements}` : ''}
+${jobRequirements ? `Requirements:\n${truncate(jobRequirements, 2000)}` : ''}
 
 Please write a compelling cover letter for this position.`;
 }
@@ -173,8 +192,90 @@ export function getAvailableModels() {
     return GEMINI_MODELS;
 }
 
+/**
+ * Parse structured resume data using Gemini API
+ * @param {string} resumeText - Raw resume text from PDF/DOCX
+ * @returns {Promise<Object>} Structured resume data
+ */
+export async function parseResumeWithAI(resumeText) {
+    const apiKey = await SettingsModel.getApiKey();
+    if (!apiKey) {
+        throw new Error('Gemini API key not configured');
+    }
+
+    const settings = await SettingsModel.get();
+    const model = settings.geminiModel || 'gemini-1.5-flash';
+
+    const prompt = `You are an expert resume parser. Extract structured data from the following resume text.
+    
+    Return ONLY a raw JSON object (no markdown formatting, no backticks) with the following structure:
+    {
+        "name": "Full Name",
+        "email": "email@example.com",
+        "phone": "formatted phone number",
+        "address": "City, State",
+        "summary": "Brief professional summary (max 3 sentences)",
+        "skills": ["Skill 1", "Skill 2"],
+        "experience": [
+            {
+                "company": "Company Name",
+                "title": "Job Title",
+                "dates": "Date Range",
+                "description": "Brief description"
+            }
+        ],
+        "education": [
+            {
+                "school": "School Name",
+                "degree": "Degree",
+                "gradYear": "Year"
+            }
+        ]
+    }
+
+    RESUME TEXT:
+    ${resumeText.slice(0, 15000)} // Limit context window just in case
+    `;
+
+    const apiUrl = `${GEMINI_API_BASE}/${model}:generateContent?key=${apiKey}`;
+
+    const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: {
+                temperature: 0.1, // Low temperature for factual extraction
+                responseMimeType: "application/json" // Force JSON response
+            }
+        })
+    });
+
+    if (!response.ok) {
+        throw new Error(`AI Parsing failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+    let text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!text) {
+        throw new Error('No data extracted from resume');
+    }
+
+    // Clean up potential markdown code blocks if the model ignores the prompt
+    text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+
+    try {
+        return JSON.parse(text);
+    } catch (e) {
+        console.error('Failed to parse AI response:', text);
+        throw new Error('Failed to parse unstructured resume data');
+    }
+}
+
 export default {
     generateCoverLetter,
+    parseResumeWithAI,
     validateApiKey,
     getAvailableModels,
     GEMINI_MODELS

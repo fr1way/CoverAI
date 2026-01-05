@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CoverAI - AI Cover Letter Generator</title>
     <link rel="stylesheet" href="popup.css">
+    <!-- Load docx library for DOCX generation (exposes global 'docx' object) -->
+    <!-- Load docx library for DOCX generation (exposes global 'docx' object) -->
+    <script src="/lib/docx.min.js"></script>
 </head>
 
 <body>
@@ -147,9 +150,6 @@
 
             <!-- Generate Button -->
             <button id="generateBtn" class="btn btn-primary btn-large" disabled>
-                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-                </svg>
                 <span>Generate Cover Letter</span>
             </button>
 
@@ -161,10 +161,41 @@
                 <p class="progress-text" id="progressText">Generating...</p>
             </div>
 
+            <!-- Debug Section (Hidden by default) -->
+            <section class="card hidden" id="debugSection">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path
+                                d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z">
+                            </path>
+                        </svg>
+                        Parsed Resume Data
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <pre id="debugContent" class="debug-content"></pre>
+                    <button id="refreshDebugBtn" class="btn btn-secondary btn-sm"
+                        style="margin-top: 10px; width: 100%;">Refresh Data</button>
+                </div>
+            </section>
+
             <!-- Preview Section -->
             <div id="previewSection" class="preview-section hidden">
                 <div class="preview-header">
                     <h3>Generated Cover Letter</h3>
+                    <p class="preview-hint">Edit the text below before downloading</p>
+                </div>
+                <textarea id="previewContent" class="preview-textarea" rows="12"
+                    placeholder="Your cover letter will appear here..."></textarea>
+                <div class="preview-footer">
+                    <button id="regenerateBtn" class="btn btn-secondary btn-sm">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="23 4 23 10 17 10"></polyline>
+                            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                        </svg>
+                        Regenerate
+                    </button>
                     <div class="preview-actions">
                         <button id="copyBtn" class="btn btn-secondary btn-sm">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -183,7 +214,6 @@
                         </button>
                     </div>
                 </div>
-                <div class="preview-content" id="previewContent"></div>
             </div>
         </main>
 
@@ -214,6 +244,11 @@
                             target="_blank" style="color: var(--primary);">Google AI Studio</a></p>
                 </div>
                 <div class="form-group">
+                    <label for="fullNameInput">Your Full Name (Signature)</label>
+                    <input type="text" id="fullNameInput" placeholder="e.g. John Doe">
+                    <p class="form-hint">Overrides name parsed from resume</p>
+                </div>
+                <div class="form-group">
                     <label for="modelSelect">Gemini Model</label>
                     <select id="modelSelect">
                         <option value="gemini-2.0-flash-exp">Gemini 2.0 Flash (Experimental)</option>
@@ -235,6 +270,12 @@
                     <label class="checkbox-label">
                         <input type="checkbox" id="includeDateCheck" checked>
                         <span>Include date in cover letter</span>
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="devModeCheck">
+                        <span>Developer Mode (Show parsed data)</span>
                     </label>
                 </div>
                 <button id="saveSettingsBtn" class="btn btn-primary">Save Settings</button>
