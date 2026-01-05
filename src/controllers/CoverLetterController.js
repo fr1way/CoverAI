@@ -30,7 +30,7 @@ export async function generate(options = {}) {
     // Check API key
     const hasKey = await SettingsModel.hasApiKey();
     if (!hasKey) {
-        throw new Error('OpenAI API key not configured. Please add your API key in settings.');
+        throw new Error('Gemini API key not configured. Please add your API key in settings.');
     }
 
     // Generate cover letter text

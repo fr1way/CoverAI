@@ -56,6 +56,7 @@ const elements = {
     closeSettingsBtn: document.getElementById('closeSettingsBtn'),
     apiKeyInput: document.getElementById('apiKeyInput'),
     toggleApiKey: document.getElementById('toggleApiKey'),
+    modelSelect: document.getElementById('modelSelect'),
     toneSelect: document.getElementById('toneSelect'),
     includeDateCheck: document.getElementById('includeDateCheck'),
     saveSettingsBtn: document.getElementById('saveSettingsBtn')
@@ -125,6 +126,7 @@ async function loadSettings() {
     const settings = await SettingsModel.get();
 
     elements.apiKeyInput.value = settings.apiKey || '';
+    elements.modelSelect.value = settings.geminiModel || 'gemini-1.5-flash';
     elements.toneSelect.value = settings.coverLetterTone || 'professional';
     elements.includeDateCheck.checked = settings.includeDate !== false;
 }
@@ -145,25 +147,55 @@ async function checkReadiness() {
 }
 
 /**
- * Handle resume file upload
+ * Handle resume file upload - PARSES IMMEDIATELY
  */
 async function handleResumeUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
 
-    try {
-        elements.resumeStatus.textContent = 'Processing...';
-        elements.resumeStatus.className = 'status-badge status-pending';
+    // Show processing state immediately
+    elements.resumeEmpty.classList.add('hidden');
+    elements.resumeInfo.classList.remove('hidden');
+    elements.resumeName.textContent = `Parsing ${file.name}...`;
+    elements.resumeEmail.textContent = '';
+    elements.resumeStatus.textContent = 'Processing';
+    elements.resumeStatus.className = 'status-badge status-pending';
 
-        await ResumeController.uploadResume(file);
-        await loadResume();
+    try {
+        console.log('[CoverAI] Starting resume parse for:', file.name);
+        const startTime = Date.now();
+
+        // Parse the resume immediately
+        const resumeData = await ResumeController.uploadResume(file);
+
+        const parseTime = Date.now() - startTime;
+        console.log(`[CoverAI] Resume parsed in ${parseTime}ms:`, {
+            name: resumeData.name,
+            email: resumeData.email,
+            skillsCount: resumeData.skills?.length || 0,
+            textLength: resumeData.rawText?.length || 0
+        });
+
+        // Update UI with parsed data
+        elements.resumeName.textContent = resumeData.name || file.name;
+        elements.resumeEmail.textContent = resumeData.email ||
+            `${resumeData.skills?.length || 0} skills • ${Math.round((resumeData.rawText?.length || 0) / 100) / 10}k chars`;
+        elements.resumeStatus.textContent = 'Ready';
+        elements.resumeStatus.className = 'status-badge status-ready';
+
         await checkReadiness();
+
     } catch (error) {
-        console.error('Resume upload error:', error);
+        console.error('[CoverAI] Resume upload error:', error);
+        elements.resumeEmpty.classList.remove('hidden');
+        elements.resumeInfo.classList.add('hidden');
         elements.resumeStatus.textContent = 'Error';
         elements.resumeStatus.className = 'status-badge status-error';
         alert('Failed to parse resume: ' + error.message);
     }
+
+    // Reset file input so same file can be re-uploaded if needed
+    event.target.value = '';
 }
 
 /**
@@ -321,6 +353,7 @@ function toggleApiKeyVisibility() {
 async function saveSettings() {
     await SettingsModel.save({
         apiKey: elements.apiKeyInput.value.trim(),
+        geminiModel: elements.modelSelect.value,
         coverLetterTone: elements.toneSelect.value,
         includeDate: elements.includeDateCheck.checked
     });

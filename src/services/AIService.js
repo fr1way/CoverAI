@@ -1,14 +1,23 @@
 /**
  * AI Service
- * OpenAI GPT API integration for cover letter generation
+ * Google Gemini API integration for cover letter generation
  */
 
 import SettingsModel from '../models/SettingsModel.js';
 
-const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
+const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
+
+// Available Gemini models
+export const GEMINI_MODELS = [
+    { id: 'gemini-2.0-flash-exp', name: 'Gemini 2.0 Flash (Experimental)', description: 'Fastest, latest experimental' },
+    { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro', description: 'Most capable, best quality' },
+    { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash', description: 'Fast and efficient' },
+    { id: 'gemini-1.5-flash-8b', name: 'Gemini 1.5 Flash 8B', description: 'Lightweight, fastest' },
+    { id: 'gemini-1.0-pro', name: 'Gemini 1.0 Pro', description: 'Stable, reliable' }
+];
 
 /**
- * Generate cover letter using OpenAI API
+ * Generate cover letter using Gemini API
  * @param {Object} resume - Parsed resume data
  * @param {Object} job - Job description data
  * @param {Object} options - Generation options
@@ -18,46 +27,67 @@ export async function generateCoverLetter(resume, job, options = {}) {
     const apiKey = await SettingsModel.getApiKey();
 
     if (!apiKey) {
-        throw new Error('OpenAI API key not configured. Please add your API key in settings.');
+        throw new Error('Gemini API key not configured. Please add your API key in settings.');
     }
 
-    const tone = options.tone || await SettingsModel.getTone();
+    const settings = await SettingsModel.get();
+    const tone = options.tone || settings.coverLetterTone || 'professional';
+    const model = options.model || settings.geminiModel || 'gemini-1.5-flash';
 
-    const systemPrompt = buildSystemPrompt(tone);
-    const userPrompt = buildUserPrompt(resume, job);
+    const prompt = buildPrompt(resume, job, tone);
+    const apiUrl = `${GEMINI_API_BASE}/${model}:generateContent?key=${apiKey}`;
 
-    const response = await fetch(OPENAI_API_URL, {
+    const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`
+            'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            model: options.model || 'gpt-4o-mini',
-            messages: [
-                { role: 'system', content: systemPrompt },
-                { role: 'user', content: userPrompt }
-            ],
-            temperature: 0.7,
-            max_tokens: 1000
+            contents: [{
+                parts: [{
+                    text: prompt
+                }]
+            }],
+            generationConfig: {
+                temperature: 0.7,
+                maxOutputTokens: 1500,
+                topP: 0.9
+            },
+            safetySettings: [
+                { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
+                { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
+                { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
+                { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' }
+            ]
         })
     });
 
     if (!response.ok) {
         const error = await response.json().catch(() => ({}));
-        throw new Error(error.error?.message || `API error: ${response.status}`);
+        const errorMessage = error.error?.message || `API error: ${response.status}`;
+        throw new Error(errorMessage);
     }
 
     const data = await response.json();
-    return data.choices[0]?.message?.content || '';
+
+    // Extract text from Gemini response
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!text) {
+        throw new Error('No response generated. Please try again.');
+    }
+
+    return text;
 }
 
 /**
- * Build system prompt based on tone
+ * Build full prompt for Gemini
+ * @param {Object} resume - Resume data
+ * @param {Object} job - Job data
  * @param {string} tone - Cover letter tone
  * @returns {string}
  */
-function buildSystemPrompt(tone) {
+function buildPrompt(resume, job, tone) {
     const toneDescriptions = {
         professional: 'professional, confident, and polished',
         friendly: 'warm, approachable, and personable while remaining professional',
@@ -66,7 +96,7 @@ function buildSystemPrompt(tone) {
 
     const toneDesc = toneDescriptions[tone] || toneDescriptions.professional;
 
-    return `You are an expert cover letter writer with years of experience in career coaching and recruitment. 
+    return `You are an expert cover letter writer with years of experience in career coaching and recruitment.
 
 Your task is to write a compelling cover letter that:
 1. Is ${toneDesc} in tone
@@ -79,17 +109,7 @@ Your task is to write a compelling cover letter that:
 
 Format the cover letter as plain text with paragraph breaks. Do not include date, recipient address, or closing signature - just the body of the letter starting with the opening paragraph.
 
-IMPORTANT: Only reference experiences, skills, and qualifications that are explicitly mentioned in the provided resume. Never fabricate or embellish.`;
-}
-
-/**
- * Build user prompt with resume and job data
- * @param {Object} resume - Resume data
- * @param {Object} job - Job data
- * @returns {string}
- */
-function buildUserPrompt(resume, job) {
-    return `Please write a cover letter for the following job application:
+IMPORTANT: Only reference experiences, skills, and qualifications that are explicitly mentioned in the provided resume. Never fabricate or embellish.
 
 === CANDIDATE RESUME ===
 Name: ${resume.name || 'Not provided'}
@@ -115,20 +135,27 @@ Please write a compelling cover letter for this position.`;
 /**
  * Validate API key by making a test request
  * @param {string} apiKey - API key to validate
+ * @param {string} model - Model to test with
  * @returns {Promise<boolean>}
  */
-export async function validateApiKey(apiKey) {
+export async function validateApiKey(apiKey, model = 'gemini-1.5-flash') {
     try {
-        const response = await fetch(OPENAI_API_URL, {
+        const apiUrl = `${GEMINI_API_BASE}/${model}:generateContent?key=${apiKey}`;
+
+        const response = await fetch(apiUrl, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: 'gpt-4o-mini',
-                messages: [{ role: 'user', content: 'Hello' }],
-                max_tokens: 5
+                contents: [{
+                    parts: [{
+                        text: 'Hello'
+                    }]
+                }],
+                generationConfig: {
+                    maxOutputTokens: 10
+                }
             })
         });
 
@@ -138,7 +165,17 @@ export async function validateApiKey(apiKey) {
     }
 }
 
+/**
+ * Get list of available models
+ * @returns {Array}
+ */
+export function getAvailableModels() {
+    return GEMINI_MODELS;
+}
+
 export default {
     generateCoverLetter,
-    validateApiKey
+    validateApiKey,
+    getAvailableModels,
+    GEMINI_MODELS
 };

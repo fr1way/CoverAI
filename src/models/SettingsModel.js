@@ -6,6 +6,7 @@ const SETTINGS_STORAGE_KEY = 'coverai_settings';
 
 const DEFAULT_SETTINGS = {
     apiKey: '',
+    geminiModel: 'gemini-1.5-flash',
     coverLetterTone: 'professional', // professional, friendly, formal
     includeDate: true,
     defaultSignature: '',
@@ -58,6 +59,23 @@ export const SettingsModel = {
     async hasApiKey() {
         const apiKey = await this.getApiKey();
         return apiKey.length > 0;
+    },
+
+    /**
+     * Get selected Gemini model
+     * @returns {string}
+     */
+    async getModel() {
+        const settings = await this.get();
+        return settings.geminiModel || 'gemini-1.5-flash';
+    },
+
+    /**
+     * Save selected model
+     * @param {string} model
+     */
+    async saveModel(model) {
+        await this.save({ geminiModel: model });
     },
 
     /**

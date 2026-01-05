@@ -1,13 +1,13 @@
 # CoverAI - AI-Powered Cover Letter Generator
 
-A Chrome extension that generates personalized, professional DOCX cover letters using AI. Automatically extracts job descriptions from popular job sites and combines them with your resume to create tailored cover letters.
+A Chrome extension that generates personalized, professional DOCX cover letters using Google Gemini AI. Automatically extracts job descriptions from popular job sites and combines them with your resume to create tailored cover letters.
 
 ## Features
 
-- **Resume Parsing**: Upload your resume in PDF or DOCX format
+- **Resume Parsing**: Upload your resume in PDF or DOCX format (parses immediately on upload)
 - **Auto Job Detection**: Automatically extracts job descriptions from LinkedIn, Indeed, Greenhouse, Lever, Workday, and Glassdoor
 - **Manual Input**: Paste job descriptions manually when auto-detection doesn't work
-- **AI Generation**: Uses OpenAI GPT to generate personalized cover letters
+- **AI Generation**: Uses Google Gemini AI with model selection (2.0 Flash, 1.5 Pro, 1.5 Flash, etc.)
 - **DOCX Export**: Download professionally formatted Word documents
 - **Privacy First**: All data stored locally, API key never leaves your device
 
@@ -40,22 +40,28 @@ A Chrome extension that generates personalized, professional DOCX cover letters 
    - Click "Load unpacked"
    - Select the `CoverAI` folder
 
+4. **Get Gemini API Key**
+   - Go to [Google AI Studio](https://aistudio.google.com/apikey)
+   - Create a free API key
+   - Add it in the extension settings
+
 ### Production Installation
 
 Coming soon to the Chrome Web Store!
 
 ## Usage
 
-1. **Add your OpenAI API Key**
+1. **Add your Gemini API Key**
    - Click the CoverAI extension icon
    - Click the settings gear icon
-   - Enter your OpenAI API key
+   - Enter your Gemini API key
+   - Choose your preferred model
    - Save settings
 
 2. **Upload your Resume**
    - Click the extension icon
    - Click "Upload PDF or DOCX"
-   - Select your resume file
+   - Your resume is parsed immediately and you'll see confirmation
 
 3. **Get a Job Description**
    - Navigate to a job posting on LinkedIn, Indeed, etc.
@@ -132,7 +138,7 @@ Choose from three writing styles:
 ## Requirements
 
 - Chrome browser (version 88+)
-- OpenAI API key ([Get one here](https://platform.openai.com/api-keys))
+- Gemini API key ([Get one free here](https://aistudio.google.com/apikey))
 
 ## License
 
