@@ -1,0 +1,22 @@
+{
+    "name": "coverai-extension",
+    "version": "1.0.0",
+    "description": "AI-Powered Cover Letter Generator Chrome Extension",
+    "scripts": {
+        "setup": "node scripts/setup-libs.js"
+    },
+    "dependencies": {
+        "docx": "^8.5.0",
+        "mammoth": "^1.6.0",
+        "pdfjs-dist": "^4.0.379"
+    },
+    "devDependencies": {},
+    "keywords": [
+        "chrome-extension",
+        "cover-letter",
+        "ai",
+        "job-application"
+    ],
+    "author": "",
+    "license": "MIT"
+}

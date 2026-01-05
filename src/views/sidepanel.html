@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoverAI - Side Panel</title>
+    <link rel="stylesheet" href="popup.css">
+    <style>
+        body {
+            min-width: auto;
+            max-width: none;
+        }
+
+        .container {
+            min-height: 100vh;
+            max-height: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                </svg>
+                <span class="logo-text">CoverAI</span>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <section class="card">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                        </svg>
+                        Enter Job Description
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <p style="color: var(--text-secondary); margin-bottom: var(--spacing-md); font-size: 13px;">
+                        Paste the job description here if automatic detection didn't work.
+                    </p>
+
+                    <div class="form-group">
+                        <label for="sidePanelTitle">Job Title</label>
+                        <input type="text" id="sidePanelTitle" placeholder="e.g., Software Engineer">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sidePanelCompany">Company</label>
+                        <input type="text" id="sidePanelCompany" placeholder="e.g., Google">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sidePanelDescription">Job Description</label>
+                        <textarea id="sidePanelDescription" rows="15"
+                            placeholder="Paste the full job description here..."></textarea>
+                    </div>
+
+                    <button id="sidePanelSaveBtn" class="btn btn-primary btn-large">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                            <polyline points="7 3 7 8 15 8"></polyline>
+                        </svg>
+                        Save Job Description
+                    </button>
+                </div>
+            </section>
+
+            <section class="card" style="margin-top: var(--spacing-md);">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="16" x2="12" y2="12"></line>
+                            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                        </svg>
+                        Tips
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <ul style="color: var(--text-secondary); font-size: 13px; padding-left: 20px; line-height: 1.8;">
+                        <li>Include the full job description for best results</li>
+                        <li>Make sure to include requirements and qualifications</li>
+                        <li>The more detail, the better your cover letter will be</li>
+                        <li>You can edit and regenerate anytime</li>
+                    </ul>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="sidepanel.js" type="module"></script>
+</body>
+
+</html>
