@@ -866,6 +866,67 @@ body {
     gap: var(--spacing-sm);
 }
 
+/* Tooltip Buttons */
+.tooltip-btn {
+    position: relative;
+}
+
+.tooltip-btn::before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-4px);
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    padding: 6px 10px;
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+    pointer-events: none;
+    border: 1px solid var(--border);
+    z-index: 100;
+}
+
+.tooltip-btn::after {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: var(--bg-tertiary);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+}
+
+.tooltip-btn:hover::before,
+.tooltip-btn:hover::after {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Success state for copy button */
+.tooltip-btn.copied::before {
+    content: 'Copied!';
+    background: var(--success);
+    color: #000;
+    border-color: var(--success);
+}
+
+.tooltip-btn.copied::after {
+    border-top-color: var(--success);
+}
+
+.tooltip-btn.copied {
+    background: var(--success-light) !important;
+    border-color: var(--success) !important;
+}
+
 /* Settings Panel */
 .settings-panel {
     position: fixed;

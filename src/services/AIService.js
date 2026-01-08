@@ -9,11 +9,8 @@ const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models
 
 // Available Gemini models
 export const GEMINI_MODELS = [
-    { id: 'gemini-2.0-flash-exp', name: 'Gemini 2.0 Flash (Experimental)', description: 'Fastest, latest experimental' },
-    { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro', description: 'Most capable, best quality' },
-    { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash', description: 'Fast and efficient' },
-    { id: 'gemini-1.5-flash-8b', name: 'Gemini 1.5 Flash 8B', description: 'Lightweight, fastest' },
-    { id: 'gemini-1.0-pro', name: 'Gemini 1.0 Pro', description: 'Stable, reliable' }
+    { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash', description: 'Latest, fastest, best quality' },
+    { id: 'gemini-2.0-flash-001', name: 'Gemini 2.0 Flash', description: 'Fast and reliable' }
 ];
 
 /**
@@ -32,7 +29,7 @@ export async function generateCoverLetter(resume, job, options = {}) {
 
     const settings = await SettingsModel.get();
     const tone = options.tone || settings.coverLetterTone || 'professional';
-    const model = options.model || settings.geminiModel || 'gemini-1.5-flash';
+    const model = options.model || settings.geminiModel || 'gemini-3-flash-preview';
 
     const prompt = buildPrompt(resume, job, tone);
     const apiUrl = `${GEMINI_API_BASE}/${model}:generateContent?key=${apiKey}`;
@@ -157,7 +154,7 @@ Please write a compelling cover letter for this position.`;
  * @param {string} model - Model to test with
  * @returns {Promise<boolean>}
  */
-export async function validateApiKey(apiKey, model = 'gemini-1.5-flash') {
+export async function validateApiKey(apiKey, model = 'gemini-3-flash-preview') {
     try {
         const apiUrl = `${GEMINI_API_BASE}/${model}:generateContent?key=${apiKey}`;
 
@@ -204,7 +201,7 @@ export async function parseResumeWithAI(resumeText) {
     }
 
     const settings = await SettingsModel.get();
-    const model = settings.geminiModel || 'gemini-1.5-flash';
+    const model = settings.geminiModel || 'gemini-3-flash-preview';
 
     const prompt = `You are an expert resume parser. Extract structured data from the following resume text.
     

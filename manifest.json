@@ -5,8 +5,7 @@
   "description": "Generate personalized, professional cover letters using AI. Automatically extracts job descriptions and creates DOCX files.",
   "permissions": [
     "storage",
-    "activeTab",
-    "scripting"
+    "activeTab"
   ],
   "host_permissions": [
     "https://www.linkedin.com/*",
@@ -66,8 +65,8 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "lib/pdf.min.js",
-        "lib/pdf.worker.min.js",
+        "lib/pdf.min.mjs",
+        "lib/pdf.worker.min.mjs",
         "lib/mammoth.browser.min.js",
         "lib/docx.min.js"
       ],

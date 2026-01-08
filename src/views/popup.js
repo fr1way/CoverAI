@@ -134,7 +134,7 @@ async function loadSettings() {
 
     elements.apiKeyInput.value = settings.apiKey || '';
     elements.fullNameInput.value = settings.fullName || '';
-    elements.modelSelect.value = settings.geminiModel || 'gemini-1.5-flash';
+    elements.modelSelect.value = settings.geminiModel || 'gemini-3-flash-preview';
     elements.toneSelect.value = settings.coverLetterTone || 'professional';
     elements.includeDateCheck.checked = settings.includeDate !== false;
     elements.devModeCheck.checked = settings.developerMode || false;
@@ -324,10 +324,15 @@ async function copyCoverLetter() {
     const text = elements.previewContent.value;
     if (text) {
         await navigator.clipboard.writeText(text);
-        elements.copyBtn.querySelector('svg').style.color = 'var(--success)';
+
+        // Show copied feedback
+        elements.copyBtn.classList.add('copied');
+        elements.copyBtn.setAttribute('data-tooltip', 'Copied!');
+
         setTimeout(() => {
-            elements.copyBtn.querySelector('svg').style.color = '';
-        }, 1000);
+            elements.copyBtn.classList.remove('copied');
+            elements.copyBtn.setAttribute('data-tooltip', 'Copy to clipboard');
+        }, 2000);
     }
 }
 
