@@ -3,7 +3,7 @@
  * Uses pdf.js to extract text from PDF resumes
  */
 
-// PDF.js will be loaded from lib folder
+// PDF.js is loaded via script tag in popup.html and exposed as window.pdfjsLib
 let pdfjsLib = null;
 
 /**
@@ -12,9 +12,18 @@ let pdfjsLib = null;
 async function initPdfJs() {
     if (pdfjsLib) return;
 
-    // Import pdf.js from lib folder
-    pdfjsLib = await import(chrome.runtime.getURL('lib/pdf.min.mjs'));
-    pdfjsLib.GlobalWorkerOptions.workerSrc = chrome.runtime.getURL('lib/pdf.worker.min.mjs');
+    // Wait for the global pdfjsLib to be available (loaded via script tag in popup.html)
+    let attempts = 0;
+    while (!window.pdfjsLib && attempts < 50) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
+    }
+
+    if (!window.pdfjsLib) {
+        throw new Error('PDF.js library failed to load. Please refresh the extension.');
+    }
+
+    pdfjsLib = window.pdfjsLib;
 }
 
 /**

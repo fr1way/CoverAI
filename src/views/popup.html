@@ -6,7 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CoverAI - AI Cover Letter Generator</title>
     <link rel="stylesheet" href="popup.css">
-    <!-- Load docx library for DOCX generation (exposes global 'docx' object) -->
+    <!-- Load PDF.js library via external script (CSP compliant) -->
+    <script type="module" src="../utils/pdfLoader.js"></script>
     <!-- Load docx library for DOCX generation (exposes global 'docx' object) -->
     <script src="/lib/docx.min.js"></script>
 </head>

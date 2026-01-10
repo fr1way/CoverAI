@@ -8,9 +8,8 @@
     "dependencies": {
         "docx": "^8.5.0",
         "mammoth": "^1.6.0",
-        "pdfjs-dist": "^4.0.379"
+        "pdfjs-dist": "^4.4.168"
     },
-    "devDependencies": {},
     "keywords": [
         "chrome-extension",
         "cover-letter",

@@ -439,8 +439,8 @@ body {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, var(--primary) 0%, #8b5cf6 100%);
-    color: white;
+    background: #ffffff;
+    color: #000000;
     box-shadow: var(--shadow-md);
 }
 
@@ -480,6 +480,23 @@ body {
 .btn-icon {
     width: 18px;
     height: 18px;
+}
+
+/* Ensure SVG icons display properly in buttons */
+.btn svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+.btn-sm svg {
+    width: 14px;
+    height: 14px;
+}
+
+/* Icon-only buttons need proper sizing */
+.btn-primary svg {
+    stroke: #000000;
 }
 
 .btn-text {

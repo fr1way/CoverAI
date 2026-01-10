@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "CoverAI - AI Cover Letter Generator",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Generate personalized, professional cover letters using AI. Automatically extracts job descriptions and creates DOCX files.",
   "permissions": [
     "storage",

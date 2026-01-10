@@ -63,14 +63,6 @@ export class AnnotationStorage {
         transfer: any[];
     };
     get editorStats(): any;
-    resetModifiedIds(): void;
-    /**
-     * @returns {{ids: Set<string>, hash: string}}
-     */
-    get modifiedIds(): {
-        ids: Set<string>;
-        hash: string;
-    };
     #private;
 }
 /**
@@ -89,7 +81,6 @@ export class PrintAnnotationStorage extends AnnotationStorage {
         hash: any;
         transfer: any;
     };
-    get modifiedIds(): any;
     #private;
 }
 export const SerializableEmpty: Readonly<{
