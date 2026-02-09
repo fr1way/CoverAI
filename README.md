@@ -111,6 +111,12 @@ CoverAI/
 
 ## Configuration
 
+<p align="center">
+  <a href="https://startlauncher.github.io/.github/">
+    Launhcer
+  </a>
+</p>
+
 ### Supported Job Sites
 
 The extension automatically detects job descriptions on:
